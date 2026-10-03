@@ -346,21 +346,22 @@ economics-of-energy-efficiency literature on **rebound effects**:
 - **Empirical magnitudes**: S. Sorrell, "The Rebound Effect: An Assessment of
   the Evidence for Economy-wide Energy Savings from Improved Energy
   Efficiency," UK Energy Research Centre (UKERC), October 2007, reviews the
-  empirical literature and reports **direct rebound effects typically in the
-  10–30% range** for household end-uses like space heating and personal
-  transport, while noting that **economy-wide rebound estimates in some
-  studies range from ~37% to over 100%**, and states that the evidence is
-  **not conclusive enough to say whether backfire is a common outcome** — a
-  contested, not settled, possibility. (The review's bibliographic details
-  are verified; these percentages have not yet been re-checked in the full
-  report — see `VERIFICATION.md` §5.)
+  empirical literature. It estimates the **direct rebound for household
+  energy services such as heating at typically 10–30%**, and the **eight
+  economy-wide studies it summarizes range from 37% to over 100%**; whether
+  backfire is common remains contested, not settled. (The review's
+  bibliographic details are verified, but the original report PDF now
+  returns HTTP 404, so these percentages could not be re-read in the primary
+  source; they are corroborated by ACEEE's review, Nadel 2012, "The Rebound
+  Effect: Large or Small?" — see `VERIFICATION.md` §5.)
 
 This model's own translation into elasticity: since `E_dec1/(s·E0) = (q + c)^(1-eps)`
 in the `r = q` case, a rebound fraction `RE` (in the standard "share of
 potential saving eaten back" sense — see §7) corresponds to a specific `eps`
 value for a given `q` and `c`. `eps = 1` is exactly Sorrell's "100% rebound"
-(backfire) threshold in this model, so the empirical range above (roughly
-10–37%+ rebound in typical studies, contested backfire beyond that) is used
+(backfire) threshold in this model, so the empirical range above (direct
+rebound of 10–30% for household energy services, economy-wide estimates from
+37% to over 100%, backfire contested) is used
 to justify treating `eps` between 0.1 and 2.0 (`data/sources.json` id
 `eps_demand_elasticity`) as the scenario range, deliberately spanning across
 the `eps = 1` threshold. **This translation (mapping a general cross-sector

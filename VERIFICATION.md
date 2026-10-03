@@ -12,7 +12,7 @@ not assumed or estimated. The check ids refer to the requirements in
 | A.1 | `sources.json` schema: required fields, types, unique ids, status coherent with kind | `node --test tests/sources.test.js` | **PASS** |
 | A.2 | Every `verified` entry's `evidence` contains its value | same file | **PASS** — 41 of 52 entries are `verified`. The check accepts space-separated thousands (IEA writes "28 200 TWh") and a multiplier stated in words ("tripling" = 3) |
 | A.3 | Every `derived` entry recomputes from its stated inputs within 0.5% | same file (7 entries, point values and range bounds) | **PASS** — max observed error ≈0.002% |
-| A.4 | Every `source_url` resolves (warning only) | `node scripts/check-links.mjs` | **WARNING** — only 1 of 11 distinct URLs resolves from this environment, which cannot reach most external sites (§2); this says nothing about link rot. A normal CI runner gets real results |
+| A.4 | Every `source_url` resolves (warning only) | `node scripts/check-links.mjs` | **WARNING** — run by CI on GitHub Actions with full network access on 2026-09-29: 9 of 11 distinct URLs resolve; the 2 failures are the iea.org pages, which return HTTP 403 to automated requests (bot protection) and were both opened manually on 2026-09-29. The checker reports 403 as "Blocked (HTTP 403, likely bot protection)", separately from dead links (404/410). Run from this project's build environment, most URLs return 403 because that environment cannot reach external sites |
 | A.5 | Second, independent verification pass on sourced numbers | manual fetch of every cited primary source by the maintainer (§2); per-entry record in `data/sources.json` `notes` | **PASS, with corrections** — see §4 |
 | B.6 | Unit conversions, `1 TWh = 1e12 Wh` | `node --test tests/units.test.js` | **PASS** (17 tests) |
 | B.7 | No un-converted cross-scope addition or comparison | `EnergyQty` tests in `tests/units.test.js`; "scope/perimeter check B.7" in `tests/sources.test.js` | **PASS** — satisfied by construction in the model (§3, item 6). Epoch AI's figure includes server and data-center overhead and the IEA per-request figures are GPU-only; none is a model input or combined with another scope |
@@ -23,12 +23,12 @@ not assumed or estimated. The check ids refer to the requirements in
 | D.12 | `E0` never exceeds total data-center consumption; the plausibility warning fires | `tests/sources.test.js`; Playwright warning test | **PASS** — `E0` range `[50, 225]` TWh stays under 485 TWh; the page shows a visible warning whenever a scenario exceeds 10% of 2025 global electricity demand |
 | D.13 | Derived 2030 data-center share vs. IEA's ~3% | `tests/sources.test.js` | **PASS** — `950 / 33,600 = 2.83%` |
 | E.14 | Adversarial conceptual review | manual, §3 | **PASS** — 7 findings fixed, 1 investigated and documented, 4 checked and found correct (§3) |
-| E.15 | Every visible number traces to a source or a live model output | `node scripts/check-text-numbers.mjs` | **PASS** — 249 number-like tokens across the default state and the 3 presets, 0 orphans |
+| E.15 | Every visible number traces to a source or a live model output | `node scripts/check-text-numbers.mjs` | **PASS** — 251 number-like tokens across the default state and the 3 presets, 0 orphans |
 | F.16 | Headless page tests | `npx playwright test` | **PASS** (16/16), including a check that each preset produces the outcome it is named after |
 | F.17 | System fonts in charts; screenshots | `node scripts/screenshot.mjs`; font assertion in `tests/page.spec.js` | **PASS** — `docs/screenshots/` |
-| F.18 | Self-contained page | Playwright network assertion; `tests/build.test.js` | **PASS** — 0 network requests from `file://`; size ≈101 KB (103,150 bytes) |
+| F.18 | Self-contained page | Playwright network assertion; `tests/build.test.js` | **PASS** — 0 network requests from `file://`; size ≈101 KB (103,752 bytes) |
 
-**Totals**: 76 Node tests (`npm test`), 16 Playwright tests, the
+**Totals**: 80 Node tests (`npm test`), 16 Playwright tests, the
 differential test and the text-numbers checker all pass; the link checker
 reports the warning explained under A.4.
 
@@ -128,9 +128,13 @@ engineer. Findings and resolutions:
   `c_complementarity_share`: scenario parameters with no source to verify
   against; `unverified` here means "not a citable fact", not "unchecked".
 - `eps_demand_elasticity`: the bibliographic details of the cited UKERC
-  review (Steven Sorrell, 1 October 2007) were verified, but the rebound
-  percentages quoted in its `evidence` are in the full report, which was not
-  re-read.
+  review (Steven Sorrell, 1 October 2007) were verified, but the original
+  report PDF now returns HTTP 404, so the rebound figures in its `evidence`
+  (10–30% direct rebound for household energy services; 37% to over 100%
+  across the eight economy-wide studies it summarizes) could not be re-read
+  in the primary source. They are corroborated by a secondary source (ACEEE,
+  Nadel 2012, "The Rebound Effect: Large or Small?"), which is not enough to
+  mark the entry `verified`.
 
 ## 6. Final full pass (2026-09-29)
 
@@ -171,9 +175,11 @@ are decisions, and here:
 
 ## 7. Manual spot-checks for the maintainer
 
-1. **Read the full UKERC report** and confirm the "direct rebound effects
-   typically 10-30%; economy-wide estimates 37% to over 100%" quote in
-   `eps_demand_elasticity`, then promote it to `verified` (or correct it).
+1. **Find an archived copy of the UKERC report** (the original PDF returns
+   HTTP 404) and confirm the figures in `eps_demand_elasticity`: 10–30%
+   direct rebound for household energy services, and 37% to over 100% across
+   the eight economy-wide studies summarized. Then promote the entry to
+   `verified` (or correct it).
 2. **Recompute the default scenario by hand**: with `s=0.3, eps=0.5, c=0.3`,
    `r=0.025553`, `q=0.012959`, `E0=108.5`, compute
    `E1 = (1-s)*E0 + s*E0*(r+c)*(q+c)^(-eps)` and confirm ≈94.9 TWh (−12.5%),
@@ -190,4 +196,3 @@ are decisions, and here:
 
 - **GitHub Pages deployment**: the workflow's steps are the same commands
   run here, but a live deployment was not observed.
-- **Link check against the open internet**: see A.4.
