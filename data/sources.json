@@ -892,7 +892,7 @@
       "id": "eps_demand_elasticity",
       "value": 0.5,
       "unit": "dimensionless elasticity",
-      "description": "Assumed own-price elasticity of demand for decision-task volume with respect to the cost of a decision (JEV plus any residual LLM call).",
+      "description": "Assumed own-price elasticity of demand for decision-task volume with respect to the cost of a decision (JEV plus any residual LLM call). Its range is motivated by Sorrell (2007): direct rebound for household energy services such as heating, and the range across eight economy-wide studies.",
       "kind": "scenario_parameter",
       "status": "unverified",
       "source_url": "https://ukerc.ac.uk/publications/the-rebound-effect-an-assessment-of-the-evidence-for-economy-wide-energy-savings-from-improved-energy-efficiency/",
@@ -900,13 +900,13 @@
       "publisher": "UK Energy Research Centre (UKERC) / Steven Sorrell, 2007",
       "published_date": "2007-10-01",
       "accessed_date": "2026-09-29",
-      "evidence": "direct rebound effects typically 10-30%; economy-wide estimates 37% to over 100% in some studies",
+      "evidence": "direct rebound, household energy services: 10-30%; eight economy-wide studies: 37% to over 100%",
       "derivation": null,
       "range": [
         0.1,
         2.0
       ],
-      "notes": "The literature gives REBOUND PERCENTAGES for other sectors, not a price elasticity of demand for AI decision-inference calls (no such study exists). The specific numeric range chosen here straddles this model's own eps=1 backfire threshold as a deliberate judgment call, explicitly NOT a citation-backed number for AI decisions specifically — see METHODOLOGY.md §6. Bibliographic details (Steven Sorrell, UKERC, 1 October 2007) verified 2026-09-29 by maintainer via manual fetch of the primary source (this environment cannot reach it). The percentages quoted in 'evidence' are in the full report and were NOT re-verified, so this entry stays 'unverified' for its numeric evidence."
+      "notes": "The literature gives REBOUND PERCENTAGES for other sectors, not a price elasticity of demand for AI decision-inference calls (no such study exists). The specific numeric range chosen here straddles this model's own eps=1 backfire threshold as a deliberate judgment call, explicitly NOT a citation-backed number for AI decisions specifically — see METHODOLOGY.md §6. What the figures mean: 10-30% is Sorrell's estimate of the direct rebound for household energy services (e.g. heating); 37% to over 100% is the range across the eight economy-wide studies he summarizes. The 'evidence' field paraphrases these findings rather than quoting the report verbatim. Bibliographic details (Steven Sorrell, UKERC, 1 October 2007) verified 2026-09-29 by maintainer via manual fetch of the publication page (this environment cannot reach it); the original report PDF now returns HTTP 404, so the percentages could not be re-read in the primary source and this entry stays 'unverified'. Secondary corroboration: ACEEE, Nadel (2012), 'The Rebound Effect: Large or Small?', https://www.aceee.org/files/pdf/white-paper/rebound-large-and-small.pdf."
     },
     {
       "id": "c_complementarity_share",
