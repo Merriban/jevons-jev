@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Data, model and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Unit + data + model tests (Node)
+        run: npm test
+
+      - name: Build dist/index.html
+        run: npm run build
+
+      - name: Differential test (Python vs JS)
+        run: python3 verify/differential_test.py
+
+      - name: Text-numbers consistency check
+        run: node scripts/check-text-numbers.mjs
+
+      - name: Source link check (non-blocking)
+        run: node scripts/check-links.mjs || echo "::warning::One or more source links failed to resolve; see VERIFICATION.md"
+
+      - name: Playwright page tests
+        run: npx playwright test
+
+      - name: Upload dist as artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  deploy:
+    name: Deploy to GitHub Pages
+    # Deploys to GitHub Pages on a push to the repository's default branch,
+    # whatever it is named (read from the push event, not hardcoded). Pushes
+    # to any other branch run the test job only.
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,21 @@
+{
+  "name": "jevons-jev",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Jevons Question: an interactive scenario study on AI decision energy use and the Jevons paradox.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:units": "node --test tests/units.test.js",
+    "test:sources": "node --test tests/sources.test.js",
+    "test:model": "node --test tests/model.test.js",
+    "build": "node scripts/build.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:text-numbers": "node scripts/check-text-numbers.mjs",
+    "diff:python": "python3 verify/differential_test.py"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

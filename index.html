@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Jevons Question</title>
+<meta name="description" content="An interactive scenario study: if AI decisions got radically cheaper, would total AI energy use fall or rise?">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --bg-panel: #ffffff;
+    --bg-inset: #f0efec;
+    --text: #1b1b18;
+    --text-muted: #55534c;
+    --border: #d9d6cd;
+    --accent: #0f5e4c;
+    --accent-contrast: #ffffff;
+    --warn-bg: #fdecea;
+    --warn-border: #d64545;
+    --warn-text: #7a1f1f;
+    --savings: #0f5e4c;
+    --partial: #a6740c;
+    --backfire: #b3261e;
+    --measured: #0f5e4c;
+    --vendor: #a6740c;
+    --estimate: #4a5a8a;
+    --self-report: #b3261e;
+    --derived: #5c4a8a;
+    --scenario: #6b6b63;
+    --focus-ring: #1a73e8;
+    --link: #0b4fbb;
+    font-size: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14151a;
+      --bg-panel: #1c1e24;
+      --bg-inset: #22242b;
+      --text: #eceae4;
+      --text-muted: #a9a89f;
+      --border: #34363e;
+      --accent: #4fd1a5;
+      --accent-contrast: #0b1310;
+      --warn-bg: #3a1f1f;
+      --warn-border: #d64545;
+      --warn-text: #ffb4a9;
+      --savings: #4fd1a5;
+      --partial: #e0b23a;
+      --backfire: #ff8a80;
+      --measured: #4fd1a5;
+      --vendor: #e0b23a;
+      --estimate: #8ab0ff;
+      --self-report: #ff8a80;
+      --derived: #c9a8ff;
+      --scenario: #a9a89f;
+      --link: #8ab0ff;
+    }
+  }
+  :root[data-theme="light"] { --bg: #f7f7f5; }
+  :root[data-theme="dark"] {
+    --bg: #14151a; --bg-panel: #1c1e24; --bg-inset: #22242b; --text: #eceae4;
+    --text-muted: #a9a89f; --border: #34363e; --accent: #4fd1a5; --accent-contrast: #0b1310;
+    --warn-bg: #3a1f1f; --warn-border: #d64545; --warn-text: #ffb4a9;
+    --savings: #4fd1a5; --partial: #e0b23a; --backfire: #ff8a80;
+    --measured: #4fd1a5; --vendor: #e0b23a; --estimate: #8ab0ff; --self-report: #ff8a80;
+    --derived: #c9a8ff; --scenario: #a9a89f; --link: #8ab0ff;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+    padding: 0 16px 64px;
+  }
+  main { max-width: 920px; margin: 0 auto; }
+  a { color: var(--link); }
+  h1, h2, h3 { line-height: 1.25; }
+  h1 { font-size: 1.7rem; margin: 1.2em 0 0.4em; }
+  h2 { font-size: 1.3rem; margin: 1.6em 0 0.5em; border-top: 1px solid var(--border); padding-top: 1em; }
+  h3 { font-size: 1.05rem; margin: 1.2em 0 0.4em; }
+  p { color: var(--text); }
+  .muted { color: var(--text-muted); }
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+  header.site-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 20px; gap: 12px; flex-wrap: wrap;
+  }
+  .site-title { font-weight: 700; font-size: 1.1rem; }
+  .theme-toggle {
+    background: var(--bg-inset); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 0.85rem;
+  }
+
+  .hero {
+    text-align: center; padding: 32px 12px 12px;
+  }
+  .hero h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); }
+  .hero-answer {
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    font-weight: 600;
+    margin: 16px auto;
+    padding: 18px 20px;
+    border-radius: 10px;
+    max-width: 640px;
+    border: 2px solid var(--border);
+    background: var(--bg-panel);
+  }
+  .hero-answer[data-outcome="savings"] { border-color: var(--savings); }
+  .hero-answer[data-outcome="partial_rebound"] { border-color: var(--partial); }
+  .hero-answer[data-outcome="backfire"] { border-color: var(--backfire); }
+  .hero-answer .big-number { font-size: 1.6em; }
+  .hero-answer .hero-sub { display: inline-block; margin-top: 8px; font-size: 0.9em; font-weight: 400; }
+
+  .disclaimer {
+    background: var(--bg-inset); border: 1px solid var(--border); border-left: 5px solid var(--accent);
+    border-radius: 8px; padding: 14px 18px; margin: 20px 0; font-size: 0.92rem;
+  }
+  .disclaimer strong { display: block; margin-bottom: 4px; }
+
+  .warning-banner {
+    background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text);
+    border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: 0.92rem; display: none;
+  }
+  .warning-banner.visible { display: block; }
+
+  .panel {
+    background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px; margin: 16px 0;
+  }
+
+  .presets { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+  .preset-btn {
+    background: var(--bg-inset); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 10px 14px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+    flex: 1 1 160px; text-align: center;
+  }
+  .preset-btn:hover { border-color: var(--accent); }
+  .preset-btn[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+
+  .controls-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .control {
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; min-width: 0;
+  }
+  .control-label-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  }
+  .control-label { font-weight: 600; font-size: 0.92rem; }
+  .control-value { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.92rem; word-break: break-word; text-align: right; }
+  .control input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .control-meta { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; flex-wrap: wrap; min-width: 0; }
+  .control-meta > * { min-width: 0; overflow-wrap: break-word; }
+  .badge {
+    display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent-contrast);
+  }
+  .badge.measured { background: var(--measured); }
+  .badge.vendor_claim { background: var(--vendor); }
+  .badge.estimate { background: var(--estimate); }
+  .badge.self_report { background: var(--self-report); }
+  .badge.derived { background: var(--derived); }
+  .badge.scenario_parameter { background: var(--scenario); color: var(--accent-contrast); }
+  .badge.status-verified { border: 1px solid currentColor; background: transparent; color: var(--measured); }
+  .badge.status-unverified { border: 1px solid currentColor; background: transparent; color: var(--text-muted); }
+  .badge.status-derived { border: 1px solid currentColor; background: transparent; color: var(--derived); }
+  .source-link { font-size: 0.78rem; overflow-wrap: break-word; }
+  .control-note { font-size: 0.78rem; color: var(--text-muted); overflow-wrap: break-word; }
+
+  .results-grid {
+    display: grid; grid-template-columns: 1fr; gap: 16px;
+  }
+  @media (min-width: 720px) {
+    .results-grid.two-col { grid-template-columns: 1fr 1fr; }
+  }
+  .stat-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 0.92rem; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-value { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 600; }
+  .outcome-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 0.85rem;
+  }
+  .outcome-tag[data-outcome="savings"] { background: var(--savings); color: var(--accent-contrast); }
+  .outcome-tag[data-outcome="partial_rebound"] { background: var(--partial); color: var(--accent-contrast); }
+  .outcome-tag[data-outcome="backfire"] { background: var(--backfire); color: var(--accent-contrast); }
+
+  svg.chart { width: 100%; height: auto; background: var(--bg-inset); border-radius: 8px; }
+  svg.chart text { fill: var(--text); font-size: 11px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  svg.chart .axis-line { stroke: var(--text-muted); stroke-width: 1; }
+  svg.chart .grid-line { stroke: var(--border); stroke-width: 1; }
+  svg.chart .threshold-line { stroke: var(--backfire); stroke-width: 2; stroke-dasharray: 5 4; }
+  svg.chart .bar-e0 { fill: var(--estimate); }
+  svg.chart .bar-e1-savings { fill: var(--savings); }
+  svg.chart .bar-e1-partial { fill: var(--partial); }
+  svg.chart .bar-e1-backfire { fill: var(--backfire); }
+  svg.chart .sweep-line { fill: none; stroke: var(--accent); stroke-width: 2; }
+  svg.chart .current-marker { fill: var(--backfire); stroke: var(--bg-panel); stroke-width: 1.5; }
+  svg.chart .hist-bar { fill: var(--estimate); opacity: 0.85; }
+
+  .know-vs-assume-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .know-vs-assume-list li {
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem;
+    min-width: 0; overflow-wrap: break-word;
+  }
+  .kva-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; min-width: 0; }
+  .kva-head > * { min-width: 0; }
+  .kva-id { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.8rem; color: var(--text-muted); word-break: break-all; }
+
+  table.sources-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table.sources-table th, table.sources-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.sources-table th { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
+
+  .share-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+  .share-btn {
+    background: var(--accent); color: var(--accent-contrast); border: none; border-radius: 8px;
+    padding: 10px 16px; font-weight: 700; cursor: pointer; font-size: 0.9rem;
+  }
+  .share-status { font-size: 0.85rem; color: var(--text-muted); }
+
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<main>
+  <header class="site-header">
+    <span class="site-title">The Jevons Question</span>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">Toggle theme</button>
+  </header>
+
+  <section class="hero" aria-labelledby="hero-heading">
+    <h1 id="hero-heading">If AI decisions got radically cheaper, would AI use less energy — or more?</h1>
+    <p class="muted">A scenario study on the Jevons paradox, applied to AI decision inference. Move the sliders below — this is not a forecast.</p>
+    <p class="control-note" id="naming-note">TypeSafe AI says it named Jev after William Stanley Jevons, expecting intelligence to follow coal's path: demand grows as cost falls (<a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev" target="_blank" rel="noopener noreferrer">TypeSafe blog, FAQ</a>). This page asks whether that is what happens to energy.</p>
+    <div class="hero-answer panel" id="hero-answer" data-outcome="" role="status" aria-live="polite">
+      <span id="hero-answer-text">Loading scenario…</span>
+    </div>
+  </section>
+
+  <div class="disclaimer" role="note">
+    <strong>What this is (and isn't).</strong>
+    This is a scenario-analysis tool, not a forecast. Every number below is a
+    cited figure (with a source you can open), a value derived from cited figures
+    by a stated formula, an explicitly labeled scenario assumption you can change,
+    or a live output of the model. <strong>No figure for JEV's actual energy use in
+    watt-hours has been published by TypeSafe AI or measured independently, as far
+    as this project could find</strong> — the
+    "energy ratio" parameter below is reconstructed from three indirect proxies
+    (price, latency, token count), not a measurement. No number on this page
+    describing JEV's energy consumption is a direct measurement.
+    <div id="data-as-of" class="control-note" style="margin-top:8px;"></div>
+  </div>
+
+  <div class="warning-banner" id="warning-banner" role="alert">
+    <strong id="warning-banner-text"></strong>
+  </div>
+
+  <section class="panel" aria-labelledby="presets-heading">
+    <h2 id="presets-heading" style="border-top:none;padding-top:0;margin-top:0;">Presets</h2>
+    <div class="presets" role="group" aria-label="Scenario presets">
+      <button type="button" class="preset-btn" data-preset="savings" aria-pressed="false">Efficiency wins</button>
+      <button type="button" class="preset-btn" data-preset="partial_rebound" aria-pressed="false">Partial rebound</button>
+      <button type="button" class="preset-btn" data-preset="backfire" aria-pressed="false">Jevons backfire</button>
+    </div>
+    <p class="control-note">Each preset sets every slider to specific, checked values (see DECISIONS.md in the repository) — they are illustrations of the model's own math, not independent predictions.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="controls-heading">
+    <h2 id="controls-heading" style="border-top:none;padding-top:0;margin-top:0;">Scenario parameters</h2>
+    <p class="control-note">
+      <span class="badge measured">measured</span> / <span class="badge vendor_claim">vendor claim</span> / <span class="badge estimate">estimate</span>
+      badges mean the default value traces to a specific source (click the source link to open it).
+      <span class="badge scenario_parameter">scenario</span> means there is no measured value — you are exploring an assumption.
+      <span class="badge derived">derived</span> means it's computed from other cited numbers (see the formula in METHODOLOGY.md).
+    </p>
+    <div class="controls-grid" id="controls-grid"><!-- populated by JS --></div>
+  </section>
+
+  <section class="panel" aria-labelledby="results-heading">
+    <h2 id="results-heading" style="border-top:none;padding-top:0;margin-top:0;">Result</h2>
+    <div class="results-grid two-col">
+      <div>
+        <div class="stat-row"><span>Outcome</span><span class="stat-value"><span class="outcome-tag" id="outcome-tag" data-outcome="">…</span></span></div>
+        <div class="stat-row"><span>Baseline energy (E0)</span><span class="stat-value" id="stat-e0">…</span></div>
+        <div class="stat-row"><span>Scenario energy (E1)</span><span class="stat-value" id="stat-e1">…</span></div>
+        <div class="stat-row"><span>Change</span><span class="stat-value" id="stat-delta">…</span></div>
+        <div class="stat-row"><span>Rebound fraction (&lt;100% = still saves; &gt;100% = backfire)</span><span class="stat-value" id="stat-rebound">…</span></div>
+        <div class="stat-row"><span>Share of global electricity demand (2025)</span><span class="stat-value" id="stat-share">…</span></div>
+      </div>
+      <div>
+        <svg class="chart" id="chart-bars" viewBox="0 0 360 260" role="img" aria-labelledby="chart-bars-title chart-bars-desc">
+          <title id="chart-bars-title">Baseline vs. scenario energy, log scale</title>
+          <desc id="chart-bars-desc">Bar chart comparing E0 and E1 in TWh per year.</desc>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="sweep-heading">
+    <h2 id="sweep-heading" style="border-top:none;padding-top:0;margin-top:0;">Where's the threshold? (E1/E0 vs. elasticity)</h2>
+    <p class="control-note">At the current r, q, s, c, this line shows how the outcome changes as elasticity (eps) varies. The dashed red line marks the breakeven elasticity, where energy returns exactly to E0: <span id="breakeven-note">…</span> When r = q the breakeven is exactly eps = 1, whatever c is (see METHODOLOGY.md §4). The marker shows your current eps.</p>
+    <svg class="chart" id="chart-sweep" viewBox="0 0 640 280" role="img" aria-labelledby="chart-sweep-title chart-sweep-desc">
+      <title id="chart-sweep-title">Energy ratio E1/E0 as a function of demand elasticity</title>
+      <desc id="chart-sweep-desc">Line chart, log-scale y-axis, showing E1/E0 rising as elasticity increases and crossing 1 at the breakeven elasticity.</desc>
+    </svg>
+  </section>
+
+  <section class="panel" aria-labelledby="mc-heading">
+    <h2 id="mc-heading" style="border-top:none;padding-top:0;margin-top:0;">Monte Carlo: how uncertain is this?</h2>
+    <p class="control-note" id="mc-caption">Loading…</p>
+    <svg class="chart" id="chart-hist" viewBox="0 0 640 260" role="img" aria-labelledby="chart-hist-title chart-hist-desc">
+      <title id="chart-hist-title">Monte Carlo distribution of E1/E0</title>
+      <desc id="chart-hist-desc">Histogram, log-scale x-axis, of E1/E0 across 10000 samples of s, r, eps, c drawn uniformly from their stated ranges.</desc>
+    </svg>
+    <p class="control-note" id="mc-caveat"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="know-assume-heading">
+    <h2 id="know-assume-heading" style="border-top:none;padding-top:0;margin-top:0;">What we know vs. what we assume</h2>
+    <ul class="know-vs-assume-list" id="know-vs-assume-list"><!-- populated by JS --></ul>
+  </section>
+
+  <section class="panel" aria-labelledby="sources-heading">
+    <h2 id="sources-heading" style="border-top:none;padding-top:0;margin-top:0;">Sources</h2>
+    <div style="overflow-x:auto;">
+      <table class="sources-table" id="sources-table">
+        <thead>
+          <tr><th>Description</th><th>Value</th><th>Publisher</th><th>Kind</th><th>Status</th><th>Accessed</th></tr>
+        </thead>
+        <tbody id="sources-table-body"><!-- populated by JS --></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="share-heading">
+    <h2 id="share-heading" style="border-top:none;padding-top:0;margin-top:0;">Share this scenario</h2>
+    <div class="share-row">
+      <button type="button" class="share-btn" id="share-btn">Copy shareable link</button>
+      <span class="share-status" id="share-status" role="status" aria-live="polite"></span>
+    </div>
+    <p class="control-note">The link encodes your current slider positions in the URL query string; opening it restores this exact scenario.</p>
+  </section>
+
+  <footer>
+    <p>
+      Open source. See the repository for methodology, data sources, and verification report.
+      Every data value on this page is read from <code>data/sources.json</code> or computed live by
+      <code>model/model.js</code>; the only constants in the page code are the preset slider positions,
+      the 10% plausibility threshold and the Monte Carlo sample count.
+    </p>
+  </footer>
+</main>
+
+<script id="sources-data" type="application/json">__SOURCES_JSON__</script>
+<script>
+__MODEL_JS__
+</script>
+<script>
+"use strict";
+
+// ---------------------------------------------------------------------------
+// Setup: load sources registry, build a lookup, and read model.js exports
+// (inlined above as plain globals by scripts/build.mjs — see that file for
+// why a classic concatenated script is used instead of ES module imports:
+// module imports of a separate file are blocked by browsers when this page
+// is opened via file://, which requirement R6 in METHODOLOGY.md §10 needs).
+// ---------------------------------------------------------------------------
+const SOURCES = JSON.parse(document.getElementById("sources-data").textContent);
+const BY_ID = {};
+for (const e of SOURCES.entries) BY_ID[e.id] = e;
+
+function src(id) {
+  const e = BY_ID[id];
+  if (!e) throw new Error(`Unknown source id: ${id}`);
+  return e;
+}
+
+const GLOBAL_DEMAND_TWH = src("global_electricity_demand_2025_twh").value;
+const ABSURD_SHARE_THRESHOLD = 0.10; // 10% of global electricity demand — requirement R8 / check D.12 (METHODOLOGY.md §10), a structural UI threshold, not a data point.
+
+const PARAM_IDS = {
+  E0: "E0_default_twh",
+  s: "s_decision_task_share",
+  r: "r_energy_ratio",
+  q: "q_price_ratio",
+  eps: "eps_demand_elasticity",
+  c: "c_complementarity_share",
+};
+
+const PARAM_ORDER = ["E0", "s", "r", "q", "eps", "c"];
+
+const PARAM_LABELS = {
+  E0: "Baseline AI inference energy (E0)",
+  s: "Decision-task share of E0 (s)",
+  r: "Energy ratio per decision, JEV/LLM (r)",
+  q: "Price ratio per decision, JEV/LLM (q)",
+  eps: "Demand elasticity (eps)",
+  c: "Complementarity share (c)",
+};
+
+const PARAM_STEP = {
+  E0: 0.5,
+  s: 0.005,
+  r: 0.0005,
+  q: 0.0001,
+  eps: 0.01,
+  c: 0.005,
+};
+
+function fmtNumber(v, maxFrac = 3) {
+  if (!Number.isFinite(v)) return String(v);
+  const abs = Math.abs(v);
+  if (abs !== 0 && (abs < 0.0001 || abs >= 100000)) {
+    return v.toExponential(2);
+  }
+  const frac = abs >= 100 ? 1 : abs >= 1 ? 2 : abs >= 0.01 ? maxFrac : 4;
+  return v.toLocaleString(undefined, { maximumFractionDigits: frac, minimumFractionDigits: 0 });
+}
+
+// Registered values are shown exactly as stored (no rounding), so they can be
+// compared digit for digit with their evidence quote.
+function fmtRegistered(v) {
+  if (!Number.isFinite(v)) return String(v);
+  return v.toLocaleString(undefined, { maximumFractionDigits: 10 });
+}
+
+function fmtPct(v, maxFrac = 1) {
+  return `${v >= 0 ? "+" : ""}${(v * 100).toLocaleString(undefined, { maximumFractionDigits: maxFrac })}%`;
+}
+
+function unitFor(key) {
+  return src(PARAM_IDS[key]).unit;
+}
+
+// ---------------------------------------------------------------------------
+// State: defaults from sources.json, overridden by URL query params if present.
+// ---------------------------------------------------------------------------
+function defaultState() {
+  const state = {};
+  for (const key of PARAM_ORDER) state[key] = src(PARAM_IDS[key]).value;
+  return state;
+}
+
+function stateFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const state = defaultState();
+  let any = false;
+  for (const key of PARAM_ORDER) {
+    if (params.has(key)) {
+      const v = Number(params.get(key));
+      if (Number.isFinite(v)) {
+        state[key] = v;
+        any = true;
+      }
+    }
+  }
+  return { state, fromUrl: any };
+}
+
+function stateToQuery(state) {
+  const params = new URLSearchParams();
+  for (const key of PARAM_ORDER) params.set(key, String(state[key]));
+  return params.toString();
+}
+
+let { state } = stateFromQuery();
+let activePreset = null;
+
+const PRESETS = {
+  savings: { label: "Efficiency wins", params: { s: 0.2, eps: 0.1, c: 0.05 } },
+  partial_rebound: { label: "Partial rebound", params: { s: 0.3, eps: 0.75, c: 0.15 } },
+  backfire: { label: "Jevons backfire", params: { s: 0.3, eps: 1.3, c: 0.2 } },
+};
+
+// ---------------------------------------------------------------------------
+// Build the slider controls.
+// ---------------------------------------------------------------------------
+const controlsGrid = document.getElementById("controls-grid");
+
+function buildControls() {
+  for (const key of PARAM_ORDER) {
+    const entry = src(PARAM_IDS[key]);
+    const [min, max] = entry.range ?? [entry.value, entry.value];
+    const wrap = document.createElement("div");
+    wrap.className = "control";
+
+    const labelRow = document.createElement("div");
+    labelRow.className = "control-label-row";
+    const label = document.createElement("label");
+    label.className = "control-label";
+    label.setAttribute("for", `slider-${key}`);
+    label.textContent = PARAM_LABELS[key];
+    const valueSpan = document.createElement("span");
+    valueSpan.className = "control-value";
+    valueSpan.id = `value-${key}`;
+    labelRow.append(label, valueSpan);
+
+    const input = document.createElement("input");
+    input.type = "range";
+    input.id = `slider-${key}`;
+    input.min = String(min);
+    input.max = String(max);
+    input.step = String(PARAM_STEP[key]);
+    input.value = String(state[key]);
+    input.addEventListener("input", () => {
+      state[key] = Number(input.value);
+      activePreset = null;
+      render();
+    });
+
+    const metaRow = document.createElement("div");
+    metaRow.className = "control-meta";
+    const kindBadge = document.createElement("span");
+    kindBadge.className = `badge ${entry.kind}`;
+    kindBadge.textContent = entry.kind.replace("_", " ");
+    metaRow.append(kindBadge);
+    if (entry.source_url) {
+      const link = document.createElement("a");
+      link.className = "source-link";
+      link.href = entry.source_url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = `source: ${entry.publisher ?? entry.source_title ?? "link"}`;
+      metaRow.append(link);
+    } else {
+      const note = document.createElement("span");
+      note.className = "control-note";
+      note.textContent = entry.kind === "derived" ? `derived: ${entry.derivation}` : "no source — scenario assumption";
+      metaRow.append(note);
+    }
+
+    const rangeNote = document.createElement("div");
+    rangeNote.className = "control-note";
+    rangeNote.textContent = `Range: ${fmtNumber(min)} – ${fmtNumber(max)} ${entry.unit}. ${entry.description}`;
+
+    wrap.append(labelRow, input, metaRow, rangeNote);
+    controlsGrid.appendChild(wrap);
+  }
+}
+
+function updateControlDisplays() {
+  for (const key of PARAM_ORDER) {
+    const input = document.getElementById(`slider-${key}`);
+    const valueSpan = document.getElementById(`value-${key}`);
+    input.value = String(state[key]);
+    input.setAttribute("aria-valuetext", `${fmtNumber(state[key])} ${unitFor(key)}`);
+    valueSpan.textContent = `${fmtNumber(state[key])} ${unitFor(key)}`;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SVG chart helpers (hand-drawn, no libraries).
+// ---------------------------------------------------------------------------
+const SVG_NS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+function clearSvg(svg) {
+  while (svg.lastChild && svg.lastChild.tagName !== "title" && svg.lastChild.tagName !== "desc") {
+    svg.removeChild(svg.lastChild);
+  }
+  // remove everything except title/desc (first two children)
+  const keep = [];
+  for (const child of Array.from(svg.children)) {
+    if (child.tagName === "title" || child.tagName === "desc") keep.push(child);
+  }
+  svg.innerHTML = "";
+  for (const k of keep) svg.appendChild(k);
+}
+
+function log10(v) { return Math.log(v) / Math.LN10; }
+
+function renderBarChart(E0, E1, classification) {
+  const svg = document.getElementById("chart-bars");
+  clearSvg(svg);
+  const W = 360, H = 260, padL = 44, padB = 30, padT = 20, padR = 16;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+
+  const minV = Math.max(1e-6, Math.min(E0, E1) * 0.5);
+  const maxV = Math.max(E0, E1) * 1.5;
+  const logMin = log10(Math.max(minV, 1e-6));
+  const logMax = log10(maxV);
+  const scaleY = (v) => padT + plotH - ((log10(Math.max(v, 1e-6)) - logMin) / (logMax - logMin)) * plotH;
+
+  // gridlines at powers of ten between logMin and logMax
+  const startExp = Math.floor(logMin), endExp = Math.ceil(logMax);
+  for (let exp = startExp; exp <= endExp; exp++) {
+    const v = Math.pow(10, exp);
+    const y = scaleY(v);
+    if (y < padT - 1 || y > padT + plotH + 1) continue;
+    svg.appendChild(svgEl("line", { class: "grid-line", x1: padL, x2: W - padR, y1: y, y2: y }));
+    svg.appendChild(svgEl("text", { x: padL - 6, y: y + 3, "text-anchor": "end" }));
+    svg.lastChild.textContent = `10^${exp}`;
+  }
+
+  const barW = plotW * 0.28;
+  const gap = plotW * 0.14;
+  const x0 = padL + plotW / 2 - gap / 2 - barW;
+  const x1 = padL + plotW / 2 + gap / 2;
+
+  const y0 = scaleY(E0);
+  svg.appendChild(svgEl("rect", { class: "bar-e0", x: x0, y: y0, width: barW, height: padT + plotH - y0 }));
+  svg.appendChild(svgEl("text", { x: x0 + barW / 2, y: padT + plotH + 18, "text-anchor": "middle" }));
+  svg.lastChild.textContent = "E0 (baseline)";
+  svg.appendChild(svgEl("text", { x: x0 + barW / 2, y: y0 - 6, "text-anchor": "middle", "font-weight": "700" }));
+  svg.lastChild.textContent = `${fmtNumber(E0)} TWh/yr`;
+
+  const barClass = classification === "savings" ? "bar-e1-savings" : classification === "partial_rebound" ? "bar-e1-partial" : "bar-e1-backfire";
+  const y1 = scaleY(E1);
+  svg.appendChild(svgEl("rect", { class: barClass, x: x1, y: y1, width: barW, height: padT + plotH - y1 }));
+  svg.appendChild(svgEl("text", { x: x1 + barW / 2, y: padT + plotH + 18, "text-anchor": "middle" }));
+  svg.lastChild.textContent = "E1 (scenario)";
+  svg.appendChild(svgEl("text", { x: x1 + barW / 2, y: y1 - 6, "text-anchor": "middle", "font-weight": "700" }));
+  svg.lastChild.textContent = `${fmtNumber(E1)} TWh/yr`;
+
+  svg.appendChild(svgEl("line", { class: "axis-line", x1: padL, x2: padL, y1: padT, y2: padT + plotH }));
+  svg.appendChild(svgEl("line", { class: "axis-line", x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH }));
+}
+
+function renderSweepChart(params, currentEps) {
+  const svg = document.getElementById("chart-sweep");
+  clearSvg(svg);
+  const W = 640, H = 280, padL = 54, padB = 34, padT = 16, padR = 20;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const epsRange = src(PARAM_IDS.eps).range;
+
+  const points = sweepEpsilon(params, epsRange[0], epsRange[1], 160);
+  const ratios = points.map((p) => Math.max(p.ratio, 1e-6));
+  const logMin = Math.floor(Math.min(...ratios.map(log10), -0.2));
+  const logMax = Math.ceil(Math.max(...ratios.map(log10), 0.2));
+
+  const scaleX = (eps) => padL + ((eps - epsRange[0]) / (epsRange[1] - epsRange[0])) * plotW;
+  const scaleY = (ratio) => padT + plotH - ((log10(Math.max(ratio, 1e-6)) - logMin) / (logMax - logMin)) * plotH;
+
+  for (let exp = logMin; exp <= logMax; exp++) {
+    const y = scaleY(Math.pow(10, exp));
+    svg.appendChild(svgEl("line", { class: "grid-line", x1: padL, x2: W - padR, y1: y, y2: y }));
+    svg.appendChild(svgEl("text", { x: padL - 6, y: y + 3, "text-anchor": "end" }));
+    svg.lastChild.textContent = `10^${exp}`;
+  }
+
+  // Breakeven line: the eps at which E1 = E0 (METHODOLOGY.md §4).
+  const breakeven = breakevenEpsilon(params);
+  const xThresh = breakeven === null ? NaN : scaleX(breakeven);
+  if (xThresh >= padL && xThresh <= W - padR) {
+    svg.appendChild(svgEl("line", { class: "threshold-line", x1: xThresh, x2: xThresh, y1: padT, y2: padT + plotH }));
+    svg.appendChild(svgEl("text", { x: xThresh + 4, y: padT + 12 }));
+    svg.lastChild.textContent = "breakeven";
+  }
+
+  // ratio = 1 line
+  const yOne = scaleY(1);
+  svg.appendChild(svgEl("line", { class: "grid-line", x1: padL, x2: W - padR, y1: yOne, y2: yOne, "stroke-dasharray": "2 2" }));
+
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"}${scaleX(p.eps).toFixed(2)},${scaleY(p.ratio).toFixed(2)}`).join(" ");
+  svg.appendChild(svgEl("path", { class: "sweep-line", d: pathD }));
+
+  const curRes = computeScenario({ ...params, eps: currentEps });
+  const cx = scaleX(currentEps), cy = scaleY(Math.max(curRes.E1 / params.E0, 1e-6));
+  svg.appendChild(svgEl("circle", { class: "current-marker", cx, cy, r: 5 }));
+
+  svg.appendChild(svgEl("line", { class: "axis-line", x1: padL, x2: padL, y1: padT, y2: padT + plotH }));
+  svg.appendChild(svgEl("line", { class: "axis-line", x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH }));
+  for (const e of [epsRange[0], 0.5, 1, 1.5, epsRange[1]]) {
+    if (e < epsRange[0] || e > epsRange[1]) continue;
+    const x = scaleX(e);
+    svg.appendChild(svgEl("text", { x, y: padT + plotH + 16, "text-anchor": "middle" }));
+    svg.lastChild.textContent = fmtNumber(e, 2);
+  }
+  svg.appendChild(svgEl("text", { x: padL, y: H - 4, "text-anchor": "start" }));
+  svg.lastChild.textContent = "elasticity (eps) →";
+}
+
+function renderHistogram(ratios, bins = 28) {
+  const svg = document.getElementById("chart-hist");
+  clearSvg(svg);
+  const W = 640, H = 260, padL = 44, padB = 30, padT = 16, padR = 16;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+
+  const positive = ratios.filter((r) => r > 0);
+  const logMin = Math.floor(Math.min(...positive.map(log10)));
+  const logMax = Math.ceil(Math.max(...positive.map(log10)));
+  const binEdges = Array.from({ length: bins + 1 }, (_, i) => logMin + ((logMax - logMin) * i) / bins);
+  const counts = new Array(bins).fill(0);
+  for (const r of positive) {
+    const lv = log10(r);
+    let idx = Math.floor(((lv - logMin) / (logMax - logMin)) * bins);
+    if (idx < 0) idx = 0;
+    if (idx >= bins) idx = bins - 1;
+    counts[idx]++;
+  }
+  const maxCount = Math.max(...counts, 1);
+
+  const scaleX = (logV) => padL + ((logV - logMin) / (logMax - logMin)) * plotW;
+  const scaleY = (count) => padT + plotH - (count / maxCount) * plotH;
+
+  const barW = plotW / bins;
+  for (let i = 0; i < bins; i++) {
+    const x = padL + i * barW;
+    const y = scaleY(counts[i]);
+    svg.appendChild(svgEl("rect", { class: "hist-bar", x, y, width: Math.max(barW - 1, 0.5), height: padT + plotH - y }));
+  }
+
+  // ratio = 1 threshold marker
+  if (0 >= logMin && 0 <= logMax) {
+    const x1 = scaleX(0);
+    svg.appendChild(svgEl("line", { class: "threshold-line", x1, x2: x1, y1: padT, y2: padT + plotH }));
+    svg.appendChild(svgEl("text", { x: x1 + 4, y: padT + 12 }));
+    svg.lastChild.textContent = "E1=E0";
+  }
+
+  for (let exp = logMin; exp <= logMax; exp++) {
+    const x = scaleX(exp);
+    svg.appendChild(svgEl("text", { x, y: padT + plotH + 16, "text-anchor": "middle" }));
+    svg.lastChild.textContent = `10^${exp}`;
+  }
+  svg.appendChild(svgEl("line", { class: "axis-line", x1: padL, x2: padL, y1: padT, y2: padT + plotH }));
+  svg.appendChild(svgEl("line", { class: "axis-line", x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH }));
+  svg.appendChild(svgEl("text", { x: padL, y: H - 4, "text-anchor": "start" }));
+  svg.lastChild.textContent = "E1 / E0 (log scale) →";
+}
+
+// ---------------------------------------------------------------------------
+// Main render
+// ---------------------------------------------------------------------------
+function render() {
+  const result = computeScenario({ ...state, globalElectricityDemandTwh: GLOBAL_DEMAND_TWH });
+
+  updateControlDisplays();
+
+  const heroAnswer = document.getElementById("hero-answer");
+  const heroText = document.getElementById("hero-answer-text");
+  heroAnswer.dataset.outcome = result.classification;
+  const label = outcomeLabel(result.classification);
+  const verb = result.deltaE < 0 ? "fall" : "rise";
+  const magnitude = Math.abs(result.deltaPct * 100).toLocaleString(undefined, { maximumFractionDigits: 1 });
+  const heroBreakeven = breakevenEpsilon(state);
+  let thresholdLine;
+  if (heroBreakeven !== null) {
+    thresholdLine = `At the current settings, total AI inference energy rises above the 2025 baseline only if demand elasticity (eps) exceeds <span class="big-number">${fmtNumber(heroBreakeven, 3)}</span>.`;
+  } else if (state.r + state.c >= 1) {
+    thresholdLine = `At the current settings, total AI inference energy rises above the 2025 baseline for <span class="big-number">any</span> demand elasticity: each decision uses at least as much energy as before.`;
+  } else {
+    thresholdLine = `At the current settings there is no elasticity at which total AI inference energy rises (decisions got no cheaper; see METHODOLOGY.md §4).`;
+  }
+  heroText.innerHTML =
+    `${thresholdLine}<br><span class="hero-sub">At your chosen eps = ${fmtNumber(state.eps, 3)}, it would ${verb} ${magnitude}% — ${label}.</span>`;
+
+  document.getElementById("outcome-tag").textContent = label;
+  document.getElementById("outcome-tag").dataset.outcome = result.classification;
+  document.getElementById("stat-e0").textContent = `${fmtNumber(result.E0)} TWh/yr`;
+  document.getElementById("stat-e1").textContent = `${fmtNumber(result.E1)} TWh/yr`;
+  document.getElementById("stat-delta").textContent = `${fmtPct(result.deltaPct)} (${result.deltaE >= 0 ? "+" : ""}${fmtNumber(result.deltaE)} TWh/yr)`;
+  document.getElementById("stat-rebound").textContent = result.reboundFraction === null ? "n/a" : fmtPct(result.reboundFraction, 0).replace("+", "");
+  document.getElementById("stat-share").textContent = `${fmtNumber(result.shareOfGlobalDemandE1 * 100, 3)}% (was ${fmtNumber(result.shareOfGlobalDemandE0 * 100, 3)}%)`;
+
+  const warnBanner = document.getElementById("warning-banner");
+  const warnText = document.getElementById("warning-banner-text");
+  if (result.shareOfGlobalDemandE1 > ABSURD_SHARE_THRESHOLD) {
+    warnBanner.classList.add("visible");
+    warnText.textContent = `This scenario implies total AI inference energy would consume ${fmtNumber(result.shareOfGlobalDemandE1 * 100, 1)}% of all global electricity demand — larger than is physically plausible for this slice of AI usage. The constant-elasticity demand formula used here is not realistic this far from the observed price change; treat this as illustrating the mathematical shape of runaway backfire, not a realistic outcome. Try lowering elasticity (eps) or complementarity (c).`;
+  } else {
+    warnBanner.classList.remove("visible");
+  }
+
+  renderBarChart(result.E0, result.E1, result.classification);
+  renderSweepChart({ E0: state.E0, s: state.s, q: state.q, r: state.r, c: state.c }, state.eps);
+  const breakeven = breakevenEpsilon(state);
+  document.getElementById("breakeven-note").textContent =
+    breakeven === null
+      ? "at your current settings there is no positive breakeven (see METHODOLOGY.md §4)."
+      : `at your current settings it is eps = ${fmtNumber(breakeven, 3)}, so energy rises above E0 only if eps is larger than that.`;
+
+  for (const key of PARAM_ORDER) {
+    document.getElementById(`slider-${key}`).setAttribute("aria-valuetext", `${fmtNumber(state[key])} ${unitFor(key)}`);
+  }
+
+  const query = stateToQuery(state);
+  const newUrl = `${window.location.pathname}?${query}`;
+  window.history.replaceState(null, "", newUrl);
+
+  for (const btn of document.querySelectorAll(".preset-btn")) {
+    btn.setAttribute("aria-pressed", String(btn.dataset.preset === activePreset));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Presets
+// ---------------------------------------------------------------------------
+for (const btn of document.querySelectorAll(".preset-btn")) {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.preset;
+    const preset = PRESETS[key];
+    state = { ...defaultState(), ...preset.params };
+    activePreset = key;
+    render();
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Share button
+// ---------------------------------------------------------------------------
+document.getElementById("share-btn").addEventListener("click", async () => {
+  const url = window.location.href;
+  const statusEl = document.getElementById("share-status");
+  try {
+    await navigator.clipboard.writeText(url);
+    statusEl.textContent = "Link copied to clipboard.";
+  } catch {
+    statusEl.textContent = url;
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Theme toggle (persisted per-viewer only, via localStorage; never required
+// for correct rendering since prefers-color-scheme is the real default).
+// ---------------------------------------------------------------------------
+(function initTheme() {
+  let saved = null;
+  try {
+    saved = window.localStorage.getItem("jevons-theme");
+  } catch {
+    /* localStorage may be unavailable (private mode, blocked storage); ignore. */
+  }
+  if (saved === "light" || saved === "dark") {
+    document.documentElement.setAttribute("data-theme", saved);
+  }
+  document.getElementById("theme-toggle").addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    const next = current === "dark" ? "light" : current === "light" ? "dark" : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", next);
+    try {
+      window.localStorage.setItem("jevons-theme", next);
+    } catch {
+      /* ignore */
+    }
+  });
+})();
+
+// ---------------------------------------------------------------------------
+// "What we know vs. what we assume" panel + Sources table (§5, auto-generated)
+// ---------------------------------------------------------------------------
+function buildKnowVsAssume() {
+  const list = document.getElementById("know-vs-assume-list");
+  const order = { measured: 0, vendor_claim: 1, estimate: 2, self_report: 3, derived: 4, scenario_parameter: 5 };
+  const entries = [...SOURCES.entries].sort((a, b) => (order[a.kind] ?? 9) - (order[b.kind] ?? 9));
+  for (const e of entries) {
+    const li = document.createElement("li");
+    const head = document.createElement("div");
+    head.className = "kva-head";
+    const kindBadge = document.createElement("span");
+    kindBadge.className = `badge ${e.kind}`;
+    kindBadge.textContent = e.kind.replace("_", " ");
+    const statusBadge = document.createElement("span");
+    statusBadge.className = `badge status-${e.status}`;
+    statusBadge.textContent = e.status;
+    const idSpan = document.createElement("span");
+    idSpan.className = "kva-id";
+    idSpan.textContent = e.id;
+    head.append(kindBadge, statusBadge, idSpan);
+    const desc = document.createElement("div");
+    desc.textContent = `${e.description} — ${e.kind === "derived" ? fmtNumber(e.value) : fmtRegistered(e.value)} ${e.unit}`;
+    // Deliberately NOT rendering e.notes here: those are internal-documentation
+    // prose (see DECISIONS.md/VERIFICATION.md) full of numbers from OTHER,
+    // sometimes-unregistered sources cited only for provenance context. This
+    // panel shows only description + the entry's own registered value/unit,
+    // so every number visible here traces cleanly (see check 15,
+    // scripts/check-text-numbers.mjs). Full caveats remain one click away via
+    // the source link and the Sources section below.
+    li.append(head, desc);
+    list.appendChild(li);
+  }
+}
+
+function buildSourcesTable() {
+  const tbody = document.getElementById("sources-table-body");
+  const withUrl = SOURCES.entries.filter((e) => e.source_url);
+  const seen = new Set();
+  for (const e of withUrl) {
+    const dedupeKey = e.source_url + "|" + e.evidence;
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    const tr = document.createElement("tr");
+    const tdDesc = document.createElement("td");
+    const link = document.createElement("a");
+    link.href = e.source_url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = e.source_title ?? e.source_url;
+    tdDesc.appendChild(link);
+    if (e.evidence) {
+      const ev = document.createElement("div");
+      ev.className = "control-note";
+      ev.textContent = `"${e.evidence}"`;
+      tdDesc.appendChild(ev);
+    }
+    const tdValue = document.createElement("td");
+    // For a scenario_parameter, the citation is a loose motivation for a
+    // RANGE (see METHODOLOGY.md), not a direct measurement of the exact
+    // default point value -- showing the point value here, right next to
+    // the citation, would wrongly imply the source itself stated it.
+    tdValue.textContent =
+      e.kind === "scenario_parameter" && e.range
+        ? `${fmtRegistered(e.range[0])} – ${fmtRegistered(e.range[1])} ${e.unit} (range this project chose)`
+        : `${fmtRegistered(e.value)} ${e.unit}`;
+    const tdPub = document.createElement("td");
+    tdPub.textContent = e.publisher ?? "—";
+    const tdKind = document.createElement("td");
+    const kindBadge = document.createElement("span");
+    kindBadge.className = `badge ${e.kind}`;
+    kindBadge.textContent = e.kind.replace("_", " ");
+    tdKind.appendChild(kindBadge);
+    const tdStatus = document.createElement("td");
+    const statusBadge = document.createElement("span");
+    statusBadge.className = `badge status-${e.status}`;
+    statusBadge.textContent = e.status;
+    tdStatus.appendChild(statusBadge);
+    const tdAccessed = document.createElement("td");
+    tdAccessed.textContent = e.accessed_date ?? "—";
+    tr.append(tdDesc, tdValue, tdPub, tdKind, tdStatus, tdAccessed);
+    tbody.appendChild(tr);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Monte Carlo (static: uses each parameter's full sources.json range; see
+// METHODOLOGY.md §9 for why E0 and q are held fixed while s, r, eps, c vary).
+// ---------------------------------------------------------------------------
+function runMonteCarloPanel() {
+  const ranges = {
+    s: src(PARAM_IDS.s).range,
+    r: src(PARAM_IDS.r).range,
+    eps: src(PARAM_IDS.eps).range,
+    c: src(PARAM_IDS.c).range,
+  };
+  const fixed = { E0: src(PARAM_IDS.E0).value, q: src(PARAM_IDS.q).value };
+  const mc = runMonteCarlo(ranges, fixed, 10000, 0x5eed1234);
+  renderHistogram(mc.ratios);
+  document.getElementById("mc-caption").textContent =
+    `Secondary analysis. 10,000 samples of s, r, eps, c drawn uniformly from their stated ranges (E0 and q held fixed at their point estimates). ` +
+    `Median E1/E0 = ${fmtNumber(mc.median)}x. Share of samples with backfire (E1 ≥ E0): ${fmtNumber(mc.backfireProbability * 100, 1)}%.`;
+  const epsRange = src(PARAM_IDS.eps).range;
+  const epsWidth = epsRange[1] - epsRange[0];
+  const approx = (epsRange[1] - mc.meanBreakeven) / epsWidth;
+  document.getElementById("mc-caveat").textContent =
+    `That share depends mainly on the range chosen for eps, not on anything measured. A sample backfires when its eps exceeds its own breakeven elasticity; ` +
+    `with eps uniform from ${fmtNumber(epsRange[0])} to ${fmtNumber(epsRange[1])}, the share is about (${fmtNumber(epsRange[1])} − mean breakeven) / ${fmtNumber(epsWidth)} = ` +
+    `(${fmtNumber(epsRange[1])} − ${fmtNumber(mc.meanBreakeven, 3)}) / ${fmtNumber(epsWidth)} ≈ ${fmtNumber(approx * 100, 1)}%, against ${fmtNumber(mc.backfireProbability * 100, 1)}% sampled (the gap is sampling noise). ` +
+    `Moving either end of the eps range moves it directly. It is not a forecast that AI energy use will rise or fall; see METHODOLOGY.md §9.`;
+}
+
+function renderDataAsOf() {
+  // Only entries backed by an external source; derived and scenario entries
+  // carry the date they were last recomputed or revised, not checked.
+  const dates = SOURCES.entries.filter((e) => e.source_url).map((e) => e.accessed_date).filter(Boolean).sort();
+  const oldest = dates[0];
+  const mostRecent = dates[dates.length - 1];
+  document.getElementById("data-as-of").textContent =
+    oldest === mostRecent
+      ? `Every cited source was last checked on ${mostRecent}.`
+      : `Cited sources were last checked between ${oldest} and ${mostRecent} (per-source dates in the Sources table).`;
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+buildControls();
+renderDataAsOf();
+buildKnowVsAssume();
+buildSourcesTable();
+render();
+runMonteCarloPanel();
+</script>
+</body>
+</html>
