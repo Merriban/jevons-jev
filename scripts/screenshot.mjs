@@ -24,12 +24,16 @@ function findLocalChromiumExecutable() {
 const executablePath = findLocalChromiumExecutable();
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 
-const desktop = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+// Pinned to the light theme and en-US so the committed screenshots do not
+// depend on the machine that generates them.
+const pageOptions = { colorScheme: "light", locale: "en-US" };
+
+const desktop = await browser.newPage({ viewport: { width: 1280, height: 900 }, ...pageOptions });
 await desktop.goto(`file://${distPath}`);
 await desktop.waitForTimeout(500);
 await desktop.screenshot({ path: path.join(outDir, "desktop.png"), fullPage: true });
 
-const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, ...pageOptions });
 await mobile.goto(`file://${distPath}`);
 await mobile.waitForTimeout(500);
 await mobile.screenshot({ path: path.join(outDir, "mobile.png"), fullPage: true });

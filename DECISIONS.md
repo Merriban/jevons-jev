@@ -164,6 +164,14 @@ they are candidates for future citations.
 
 ## Page presentation
 
+- **Every color is a theme token** on `:root`. Light is the default and also
+  applies when the viewer picks "light" on a dark system; dark applies on a
+  dark system unless "light" was picked, or when "dark" was picked. The
+  choice is remembered in `localStorage` (inside `try/catch`, so the page
+  works without it). Tests check text contrast in all four combinations.
+- **Numbers are always formatted as en-US** (decimal point, comma
+  thousands), whatever the browser's language, to match the sources and the
+  methodology.
 - **`eps` in the Sources table shows its range**, labeled "range this
   project chose", not the 0.5 default: the cited UKERC review motivates a
   range and never states 0.5.
