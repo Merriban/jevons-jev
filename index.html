@@ -6,7 +6,12 @@
 <title>The Jevons Question</title>
 <meta name="description" content="An interactive scenario study: if AI decisions got radically cheaper, would total AI energy use fall or rise?">
 <style>
-  :root {
+  /* Theme tokens. Every color on the page comes from these. Light is the
+     default and also applies when the viewer picks "light" on a dark system;
+     dark applies on a dark system unless "light" was picked, or when "dark"
+     was picked explicitly. */
+  :root,
+  :root[data-theme="light"] {
     --bg: #f7f7f5;
     --bg-panel: #ffffff;
     --bg-inset: #f0efec;
@@ -19,20 +24,20 @@
     --warn-border: #d64545;
     --warn-text: #7a1f1f;
     --savings: #0f5e4c;
-    --partial: #a6740c;
+    --partial: #8a6008;
     --backfire: #b3261e;
     --measured: #0f5e4c;
-    --vendor: #a6740c;
+    --vendor: #8a6008;
     --estimate: #4a5a8a;
     --self-report: #b3261e;
     --derived: #5c4a8a;
     --scenario: #6b6b63;
     --focus-ring: #1a73e8;
     --link: #0b4fbb;
-    font-size: 16px;
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #14151a;
       --bg-panel: #1c1e24;
       --bg-inset: #22242b;
@@ -53,18 +58,37 @@
       --self-report: #ff8a80;
       --derived: #c9a8ff;
       --scenario: #a9a89f;
+      --focus-ring: #8ab0ff;
       --link: #8ab0ff;
+      color-scheme: dark;
     }
   }
-  :root[data-theme="light"] { --bg: #f7f7f5; }
   :root[data-theme="dark"] {
-    --bg: #14151a; --bg-panel: #1c1e24; --bg-inset: #22242b; --text: #eceae4;
-    --text-muted: #a9a89f; --border: #34363e; --accent: #4fd1a5; --accent-contrast: #0b1310;
-    --warn-bg: #3a1f1f; --warn-border: #d64545; --warn-text: #ffb4a9;
-    --savings: #4fd1a5; --partial: #e0b23a; --backfire: #ff8a80;
-    --measured: #4fd1a5; --vendor: #e0b23a; --estimate: #8ab0ff; --self-report: #ff8a80;
-    --derived: #c9a8ff; --scenario: #a9a89f; --link: #8ab0ff;
+    --bg: #14151a;
+    --bg-panel: #1c1e24;
+    --bg-inset: #22242b;
+    --text: #eceae4;
+    --text-muted: #a9a89f;
+    --border: #34363e;
+    --accent: #4fd1a5;
+    --accent-contrast: #0b1310;
+    --warn-bg: #3a1f1f;
+    --warn-border: #d64545;
+    --warn-text: #ffb4a9;
+    --savings: #4fd1a5;
+    --partial: #e0b23a;
+    --backfire: #ff8a80;
+    --measured: #4fd1a5;
+    --vendor: #e0b23a;
+    --estimate: #8ab0ff;
+    --self-report: #ff8a80;
+    --derived: #c9a8ff;
+    --scenario: #a9a89f;
+    --focus-ring: #8ab0ff;
+    --link: #8ab0ff;
+    color-scheme: dark;
   }
+  :root { font-size: 16px; }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -100,22 +124,25 @@
   }
 
   .hero {
-    text-align: center; padding: 32px 12px 12px;
+    text-align: center; padding: 32px 0 12px;
   }
   .hero h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); }
   .hero-answer {
     font-size: clamp(1.1rem, 3vw, 1.4rem);
     font-weight: 600;
-    margin: 16px auto;
     padding: 18px 20px;
     border-radius: 10px;
-    max-width: 640px;
+    width: 100%;
+    max-width: 680px;
     border: 2px solid var(--border);
     background: var(--bg-panel);
   }
   .hero-answer[data-outcome="savings"] { border-color: var(--savings); }
   .hero-answer[data-outcome="partial_rebound"] { border-color: var(--partial); }
   .hero-answer[data-outcome="backfire"] { border-color: var(--backfire); }
+  /* Declared after .panel would be too late: .panel sets margin: 16px 0, so
+     the centering lives on this more specific selector. */
+  .hero-answer.panel { margin: 16px auto; }
   .hero-answer .big-number { font-size: 1.6em; }
   .hero-answer .hero-sub { display: inline-block; margin-top: 8px; font-size: 0.9em; font-weight: 400; }
 
@@ -123,7 +150,8 @@
     background: var(--bg-inset); border: 1px solid var(--border); border-left: 5px solid var(--accent);
     border-radius: 8px; padding: 14px 18px; margin: 20px 0; font-size: 0.92rem;
   }
-  .disclaimer strong { display: block; margin-bottom: 4px; }
+  .disclaimer p { margin: 0 0 6px; }
+  .disclaimer .disclaimer-title { margin-bottom: 4px; }
 
   .warning-banner {
     background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text);
@@ -242,8 +270,8 @@
   </section>
 
   <div class="disclaimer" role="note">
-    <strong>What this is (and isn't).</strong>
-    This is a scenario-analysis tool, not a forecast. Every number below is a
+    <p class="disclaimer-title"><strong>What this is (and isn't).</strong></p>
+    <p>This is a scenario-analysis tool, not a forecast. Every number below is a
     cited figure (with a source you can open), a value derived from cited figures
     by a stated formula, an explicitly labeled scenario assumption you can change,
     or a live output of the model. <strong>No figure for JEV's actual energy use in
@@ -251,7 +279,7 @@
     as this project could find</strong> — the
     "energy ratio" parameter below is reconstructed from three indirect proxies
     (price, latency, token count), not a measurement. No number on this page
-    describing JEV's energy consumption is a direct measurement.
+    describing JEV's energy consumption is a direct measurement.</p>
     <div id="data-as-of" class="control-note" style="margin-top:8px;"></div>
   </div>
 
@@ -411,6 +439,11 @@ const PARAM_STEP = {
   c: 0.005,
 };
 
+// Numbers are always formatted as en-US (decimal point, comma thousands),
+// whatever the browser's language: the page, its sources and the methodology
+// all use the decimal point.
+const NUMBER_LOCALE = "en-US";
+
 function fmtNumber(v, maxFrac = 3) {
   if (!Number.isFinite(v)) return String(v);
   const abs = Math.abs(v);
@@ -418,18 +451,18 @@ function fmtNumber(v, maxFrac = 3) {
     return v.toExponential(2);
   }
   const frac = abs >= 100 ? 1 : abs >= 1 ? 2 : abs >= 0.01 ? maxFrac : 4;
-  return v.toLocaleString(undefined, { maximumFractionDigits: frac, minimumFractionDigits: 0 });
+  return v.toLocaleString(NUMBER_LOCALE, { maximumFractionDigits: frac, minimumFractionDigits: 0 });
 }
 
 // Registered values are shown exactly as stored (no rounding), so they can be
 // compared digit for digit with their evidence quote.
 function fmtRegistered(v) {
   if (!Number.isFinite(v)) return String(v);
-  return v.toLocaleString(undefined, { maximumFractionDigits: 10 });
+  return v.toLocaleString(NUMBER_LOCALE, { maximumFractionDigits: 10 });
 }
 
 function fmtPct(v, maxFrac = 1) {
-  return `${v >= 0 ? "+" : ""}${(v * 100).toLocaleString(undefined, { maximumFractionDigits: maxFrac })}%`;
+  return `${v >= 0 ? "+" : ""}${(v * 100).toLocaleString(NUMBER_LOCALE, { maximumFractionDigits: maxFrac })}%`;
 }
 
 function unitFor(key) {
@@ -739,7 +772,7 @@ function render() {
   heroAnswer.dataset.outcome = result.classification;
   const label = outcomeLabel(result.classification);
   const verb = result.deltaE < 0 ? "fall" : "rise";
-  const magnitude = Math.abs(result.deltaPct * 100).toLocaleString(undefined, { maximumFractionDigits: 1 });
+  const magnitude = Math.abs(result.deltaPct * 100).toLocaleString(NUMBER_LOCALE, { maximumFractionDigits: 1 });
   const heroBreakeven = breakevenEpsilon(state);
   let thresholdLine;
   if (heroBreakeven !== null) {

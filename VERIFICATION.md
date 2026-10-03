@@ -24,11 +24,11 @@ not assumed or estimated. The check ids refer to the requirements in
 | D.13 | Derived 2030 data-center share vs. IEA's ~3% | `tests/sources.test.js` | **PASS** — `950 / 33,600 = 2.83%` |
 | E.14 | Adversarial conceptual review | manual, §3 | **PASS** — 7 findings fixed, 1 investigated and documented, 4 checked and found correct (§3) |
 | E.15 | Every visible number traces to a source or a live model output | `node scripts/check-text-numbers.mjs` | **PASS** — 251 number-like tokens across the default state and the 3 presets, 0 orphans |
-| F.16 | Headless page tests | `npx playwright test` | **PASS** (16/16), including a check that each preset produces the outcome it is named after |
-| F.17 | System fonts in charts; screenshots | `node scripts/screenshot.mjs`; font assertion in `tests/page.spec.js` | **PASS** — `docs/screenshots/` |
-| F.18 | Self-contained page | Playwright network assertion; `tests/build.test.js` | **PASS** — 0 network requests from `file://`; size ≈101 KB (103,752 bytes) |
+| F.16 | Headless page tests | `npx playwright test` | **PASS** (24/24), including: each preset produces the outcome it is named after; WCAG contrast of header title, h1, subtitle, threshold box, disclaimer, links, table headers, badges and outcome tag is at least 4.5:1 (3:1 for large text) in all four combinations of system theme × theme chosen with the toggle; the chosen theme survives a reload; the threshold box is centered (gap difference < 2 px) at 1280 and 375 px and full-width on mobile; with an it-IT browser locale every number still uses the decimal point |
+| F.17 | System fonts in charts; screenshots | `node scripts/screenshot.mjs`; font assertion in `tests/page.spec.js` | **PASS** — `docs/screenshots/` (light theme, en-US, pinned in the script) |
+| F.18 | Self-contained page | Playwright network assertion; `tests/build.test.js` | **PASS** — 0 network requests from `file://`; size ≈102 KB (104,693 bytes) |
 
-**Totals**: 80 Node tests (`npm test`), 16 Playwright tests, the
+**Totals**: 80 Node tests (`npm test`), 24 Playwright tests, the
 differential test and the text-numbers checker all pass; the link checker
 reports the warning explained under A.4.
 
