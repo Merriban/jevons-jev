@@ -164,6 +164,13 @@ they are candidates for future citations.
 
 ## Page presentation
 
+- **Share images are generated, not drawn.** `scripts/render-share-images.mjs`
+  renders `docs/og.png` (link previews) and `docs/chart-breakeven.png` (posts)
+  with Playwright from `scripts/share-content.mjs`, which reads every number
+  from the model at the default scenario. Each PNG is stamped with a hash of
+  the data and model it was rendered from, so a test fails if they change
+  and the images are not re-rendered (`npm run render:share`). The
+  link-preview description is filled in by the build from the same module.
 - **Every color is a theme token** on `:root`. Light is the default and also
   applies when the viewer picks "light" on a dark system; dark applies on a
   dark system unless "light" was picked, or when "dark" was picked. The

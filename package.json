@@ -12,7 +12,8 @@
     "build": "node scripts/build.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:text-numbers": "node scripts/check-text-numbers.mjs",
-    "diff:python": "python3 verify/differential_test.py"
+    "diff:python": "python3 verify/differential_test.py",
+    "render:share": "node scripts/render-share-images.mjs"
   },
   "license": "MIT",
   "devDependencies": {

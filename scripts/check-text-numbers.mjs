@@ -106,6 +106,8 @@ function collectAllowedNumbers() {
   add(1.5); // hardcoded sweep-chart tick marks, see index.html renderSweepChart
   add(10000); // Monte Carlo sample count (mc-caption's "10,000 samples")
   add(1000000); // "1e6" unit shorthand ("USD/1e6 input tokens")
+  add(1200); // og:image:width (image size in pixels, not data)
+  add(630); // og:image:height
 
   return allowed;
 }
@@ -157,7 +159,14 @@ async function main() {
   const page = await browser.newPage();
   await page.goto(`file://${distPath}`);
   await page.waitForTimeout(400);
-  const text = await page.evaluate(() => document.body.innerText);
+  // Visible text plus the text that link previews show (title and meta
+  // descriptions/alt text); their numbers must trace back too.
+  const text = await page.evaluate(() => {
+    const metaText = [...document.querySelectorAll("meta[content]")]
+      .map((m) => m.getAttribute("content"))
+      .filter((c) => !/^https?:\/\//.test(c));
+    return [document.title, ...metaText, document.body.innerText].join("\n");
+  });
   await browser.close();
 
   let cleaned = text;

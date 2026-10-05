@@ -3,9 +3,10 @@
 // opened via file:// (where an external <script type="module" src="...">
 // or fetch('data/sources.json') would be blocked by the browser's same
 // -origin restrictions on local files) and on GitHub Pages alike.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { shareContent } from "./share-content.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
@@ -36,7 +37,11 @@ let output = template;
 output = output.replace("__SOURCES_JSON__", () => sourcesInline);
 output = output.replace("__MODEL_JS__", () => modelInline);
 
-if (output.includes("__SOURCES_JSON__") || output.includes("__MODEL_JS__")) {
+// Link-preview description, computed from the model at the default scenario.
+const escapeAttr = (s) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+output = output.replaceAll("__SHARE_DESCRIPTION__", () => escapeAttr(shareContent().ogDescription));
+
+if (output.includes("__SOURCES_JSON__") || output.includes("__MODEL_JS__") || output.includes("__SHARE_DESCRIPTION__")) {
   throw new Error("build.mjs: a placeholder was not replaced. Check index.html's markers.");
 }
 
@@ -44,6 +49,12 @@ const distDir = path.join(root, "dist");
 mkdirSync(distDir, { recursive: true });
 const outPath = path.join(distDir, "index.html");
 writeFileSync(outPath, output, "utf8");
+
+// The Open Graph image must be published next to the page, since og:image
+// points at <site>/og.png.
+const ogSource = path.join(root, "docs", "og.png");
+if (!existsSync(ogSource)) throw new Error("build.mjs: docs/og.png is missing; run `npm run render:share`.");
+copyFileSync(ogSource, path.join(distDir, "og.png"));
 
 const bytes = Buffer.byteLength(output, "utf8");
 console.log(`Built ${outPath} (${bytes.toLocaleString()} bytes, ${(bytes / 1024 / 1024).toFixed(3)} MiB)`);
