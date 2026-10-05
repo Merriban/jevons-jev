@@ -44,3 +44,32 @@ test("dist/index.html size stays within the 16 MiB artifact budget", () => {
   const stats = readFileSync(distIndexPath);
   assert.ok(stats.length < 16 * 1024 * 1024);
 });
+
+test("link-preview meta tags are present, with absolute URLs, and og.png is published next to the page", () => {
+  const html = readFileSync(distIndexPath, "utf8");
+  const meta = (attr, name) => {
+    const m = html.match(new RegExp(`<meta ${attr}="${name}" content="([^"]*)">`));
+    assert.ok(m, `missing <meta ${attr}="${name}">`);
+    return m[1];
+  };
+  const site = "https://merriban.github.io/jevons-jev/";
+  assert.equal(meta("property", "og:type"), "website");
+  assert.equal(meta("property", "og:url"), site);
+  assert.equal(meta("property", "og:image"), `${site}og.png`);
+  assert.equal(meta("name", "twitter:image"), `${site}og.png`);
+  assert.equal(meta("property", "og:image:width"), "1200");
+  assert.equal(meta("property", "og:image:height"), "630");
+  assert.equal(meta("name", "twitter:card"), "summary_large_image");
+  for (const [attr, name] of [["property", "og:title"], ["property", "og:description"], ["property", "og:image:alt"], ["name", "twitter:title"], ["name", "twitter:description"]]) {
+    assert.ok(meta(attr, name).length > 20, `${name} should not be empty`);
+  }
+  for (const url of [meta("property", "og:url"), meta("property", "og:image"), meta("name", "twitter:image")]) {
+    assert.match(url, /^https:\/\//, `${url} must be absolute`);
+  }
+  const canonical = html.match(/<link rel="canonical" href="([^"]*)">/);
+  assert.ok(canonical && canonical[1] === site, "missing or wrong canonical link");
+  assert.ok(!html.includes("__SHARE_DESCRIPTION__"));
+  const published = readFileSync(path.join(root, "dist", "og.png"));
+  assert.ok(published.equals(readFileSync(path.join(root, "docs", "og.png"))), "dist/og.png must be a copy of docs/og.png");
+});
+

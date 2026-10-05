@@ -1,5 +1,22 @@
 # The Jevons Question
 
+An interactive page that asks whether radically cheaper AI decision models
+would make total AI inference energy fall or rise, and lets you change every
+assumption behind the answer.
+
+### ▶ Live page: [merriban.github.io/jevons-jev](https://merriban.github.io/jevons-jev/)
+
+**Key result, at default settings — a scenario, not a forecast:** total AI
+inference energy rises above its 2025 baseline only if demand for AI
+decisions has an elasticity above **0.966**.
+
+![Desktop screenshot of the page](docs/screenshots/desktop.png)
+
+How every number is derived: [`METHODOLOGY.md`](METHODOLOGY.md). How it was
+checked: [`VERIFICATION.md`](VERIFICATION.md).
+
+---
+
 **If AI decisions got radically cheaper, would AI use less energy — or more?**
 
 An interactive, open-source scenario study on what happens to total AI
@@ -14,10 +31,8 @@ figure you can trace to its source, or an explicitly labeled scenario
 assumption you're invited to change. Nothing here predicts what will
 actually happen.
 
-▶ Open `dist/index.html` in any browser (works from a plain file, no server
-needed), or visit the deployed GitHub Pages site.
-
-![Desktop screenshot](docs/screenshots/desktop.png)
+To run it locally, build it (`npm run build`) and open `dist/index.html` in
+any browser; it works from a plain file, no server needed.
 
 ## What this is
 
